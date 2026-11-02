@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>History <small>记录</small></h1>
+<p class="sub">
+  {% if target %}<code>{{ target }}</code>{% endif %}
+  <span class="muted">Newest first.</span>
+  {% if target and account %}
+  <a href="/send?target={{ target }}&amp;account={{ account }}">Send here</a>
+  {% endif %}
+</p>
+{% if error %}
+<p class="flash err">{{ error }}</p>
+{% endif %}
+{% if messages %}
+<ol class="thread">
+  {% for msg in messages %}
+  <li class="{% if self_id and msg.sender_id == self_id %}mine{% endif %}">
+    <header>
+      <strong>{{ msg.sender_name or "Unknown" }}</strong>
+      <time>{{ msg.date }}</time>
+    </header>
+    <p>{{ msg.text or "" }}</p>
+    {% if msg.media_type %}<p class="media">{{ msg.media_type }}</p>{% endif %}
+  </li>
+  {% endfor %}
+</ol>
+{% elif target and not error %}
+<p class="muted">No messages.</p>
+{% endif %}
+{% endblock %}

@@ -21,7 +21,14 @@ def get_client(account: str | None = None, must_exist: bool = True) -> TelegramC
 
     ensure_dirs()
     api_id, api_hash = get_api_credentials()
-    return TelegramClient(session_path_for(account, must_exist), api_id, api_hash)
+    # Empty unless TG_PROXY_* or TG_MTPROXY_* is configured. The default
+    # constructor path stays a direct connection.
+    from ..proxy import telethon_proxy_kwargs
+
+    extra = telethon_proxy_kwargs()
+    return TelegramClient(
+        session_path_for(account, must_exist), api_id, api_hash, **extra
+    )
 
 
 def resolve_target(target: str | int) -> str | int:

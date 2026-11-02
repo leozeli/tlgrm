@@ -46,7 +46,14 @@ def _seed() -> tuple[int, str] | None:
 
 def get_api_credentials() -> tuple[int, str]:
     """Return (api_id, api_hash): the user's environment values if set, otherwise
-    the bundled fallback, otherwise raise CredentialsError."""
+    the bundled fallback, otherwise raise CredentialsError.
+
+    Keys saved by ``tlgrm ui`` are filled in first when the process did not
+    already export them. An exported value always wins.
+    """
+    from .envfile import inject_file_env
+
+    inject_file_env()
     api_id = os.getenv("TG_API_ID")
     api_hash = os.getenv("TG_API_HASH")
     if api_id and api_hash:

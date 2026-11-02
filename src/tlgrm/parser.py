@@ -272,6 +272,17 @@ def build_parser() -> argparse.ArgumentParser:
     stset.add_argument("--model")
     stset.add_argument("--device", choices=["auto", "cpu", "cuda"])
 
+    p = sub.add_parser(
+        "ui",
+        help="Open the local web dashboard (default bind 127.0.0.1:8765)",
+    )
+    p.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Bind address (default: 127.0.0.1). Any other address prints a warning.",
+    )
+    p.add_argument("--port", type=int, default=8765, help="Port (default: 8765)")
+
     p = sub.add_parser("transcribe", help="Transcribe an audio file (speech-to-text)")
     p.add_argument("--file", required=True, help="Path to the audio file")
     p.add_argument(

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Listening <small>监听</small></h1>
+{% if acc_err %}
+<p class="flash err">{{ acc_err }}</p>
+{% elif not listen %}
+<p class="muted">Run <code>tlgrm login</code> in a terminal first.</p>
+{% elif listen %}
+<section class="grid">
+  <article class="card">
+    <h2>Incoming</h2>
+    <p class="lamp {% if listen.enabled %}on{% else %}off{% endif %}">
+      {{ "On" if listen.enabled else "Off" }}
+    </p>
+    <form method="post" action="/listening" class="row">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <input type="hidden" name="account" value="{{ account }}">
+      {% if listen.enabled %}
+      <button type="submit" name="action" value="disable">Disable</button>
+      {% else %}
+      <button type="submit" name="action" value="enable">Enable</button>
+      {% endif %}
+    </form>
+    <dl>
+      <div><dt>Window</dt><dd>{{ listen.window or "All day" }}</dd></div>
+      <div><dt>Listen filter</dt><dd>{{ listen.listen_summary }}</dd></div>
+      <div><dt>Write guard</dt><dd>{{ listen.write_summary }}</dd></div>
+    </dl>
+    <p class="muted">Filters and the daily window are edited with <code>tlgrm filter</code> and <code>tlgrm listening window</code>.</p>
+  </article>
+  <article class="card">
+    <h2>Webhook</h2>
+    <p>{{ listen.webhook_masked or "Not set" }}</p>
+    {% if listen.headers %}
+    <ul class="plain">
+      {% for header in listen.headers %}
+      <li><code>{{ header }}</code></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <form method="post" action="/listening" class="stack" autocomplete="off">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <input type="hidden" name="account" value="{{ account }}">
+      <label>
+        <span>URL</span>
+        <input name="url" type="url" placeholder="https://example.com/hook" required>
+      </label>
+      <label>
+        <span>Auth header <small>optional</small></span>
+        <input name="header_name" value="Authorization" autocomplete="off">
+      </label>
+      <label>
+        <span>Header value</span>
+        <input name="header_value" type="password" placeholder="Bearer …" autocomplete="new-password">
+      </label>
+      <label class="check">
+        <input type="checkbox" name="clear_header" value="1">
+        <span>Remove saved auth header</span>
+      </label>
+      <div class="row">
+        <button type="submit" name="action" value="webhook_set">Save webhook</button>
+        <button type="submit" name="action" value="webhook_clear" class="ghost" formnovalidate>Clear</button>
+      </div>
+    </form>
+  </article>
+</section>
+{% endif %}
+{% endblock %}

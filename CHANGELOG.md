@@ -3,6 +3,13 @@
 All notable changes to tlgrm are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Local web dashboard** — `tlgrm ui` (optional `ui` extra) serves a localhost page for status, recent chats and history, sending, and listening/webhook settings. It routes through the background server, so the CLI, MCP, and dashboard share one connection and the write guard still applies.
+- **SOCKS and MTProxy** — `TG_PROXY_HOST` / `TG_PROXY_PORT` / `TG_PROXY_TYPE` and `TG_MTPROXY_HOST` / `TG_MTPROXY_PORT` / `TG_MTPROXY_SECRET`. The client stays a direct connection until one of these is set. Values can also be saved from the dashboard to `~/.tlgrm/ui.env`; exported variables win.
+
 ## [0.3.2] — 2026-06-17
 
 ### Fixed

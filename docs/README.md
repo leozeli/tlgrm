@@ -38,6 +38,9 @@ tlgrm login
 tlgrm chats --limit 10
 tlgrm chats | jq '.[].name'
 tlgrm send --target @username --text "Hello!"
+
+# Or open the local dashboard (pip install "tlgrm[ui]")
+tlgrm ui
 tlgrm react --target @username --message-id 137480 --emoji "👍"
 ```
 

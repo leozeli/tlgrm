@@ -28,6 +28,7 @@ Drive your *personal* Telegram account from the terminal — or from an AI assis
 - **Live filtering & permissions** — per-account allow/block lists for both *listening* (`filter listen`) and *writing* (`filter write`), plus daily listening windows — all reconfigurable live.
 - **Scheduled messages** — `schedule send --at/--in`, `list`, `cancel` (Telegram-native, fires even when offline).
 - **MCP server** — `tlgrm-mcp` lets AI assistants drive Telegram (read-only by default), as a thin bridge to the server.
+- **Local dashboard** — `tlgrm ui` opens a localhost page for status, chats, sending, and listen/webhook settings.
 - **Speech-to-text** — auto-transcribe incoming voice notes (multilingual, GPU-aware, live-configurable via `tlgrm stt`), or transcribe any file with `tlgrm transcribe`.
 - **Clean JSON output** — commands print JSON to stdout (logs go to stderr), so it pipes straight into `jq` and scripts.
 
@@ -41,7 +42,7 @@ export TG_API_ID=1234567
 export TG_API_HASH=your_api_hash_here
 
 # 2. Install — uv recommended (https://docs.astral.sh/uv/)
-uv tool install "tlgrm[all]"      # everything (CLI + MCP + speech-to-text)
+uv tool install "tlgrm[all]"      # everything (CLI + MCP + UI + speech-to-text)
 # uv tool install tlgrm           # CLI only
 # uv tool install "tlgrm[mcp]"    # CLI + MCP server
 
@@ -155,6 +156,22 @@ Full setup, permission tiers, and tool list: **[MCP guide](docs/04-mcp.md)**.
 
 ---
 
+## Local web UI
+
+```bash
+uv tool install "tlgrm[ui]"      # or: pip install "tlgrm[ui]"
+tlgrm ui                         # http://127.0.0.1:8765
+tlgrm ui --port 9000             # still bound to 127.0.0.1
+```
+
+`tlgrm ui` is a small localhost dashboard over the same background server as the CLI and MCP (it starts the server if it is not already running). Pages cover status, recent chats and history, sending a text message (the write guard still applies), listening and webhook settings, and credentials/proxy settings.
+
+It binds to **127.0.0.1** unless you pass `--host`. Any other address prints a warning and shows one in the page: anyone who can open that URL can use your account.
+
+Settings show whether `TG_API_ID` and `TG_API_HASH` are set and never display those values. Optional SOCKS (`TG_PROXY_HOST`, `TG_PROXY_PORT`, `TG_PROXY_TYPE`) and MTProxy (`TG_MTPROXY_*`) fields are saved to an owner-only `~/.tlgrm/ui.env`. A variable already exported in the environment wins. Restart `tlgrm server` after a proxy change. SOCKS needs an extra package: `pip install "python-socks[asyncio]"` (PySocks also works). See [configuration](docs/03-configuration.md#proxies).
+
+---
+
 ## Speech-to-text (optional)
 
 Install the `stt` extra to auto-transcribe incoming voice notes in the webhook daemon, or to run `tlgrm transcribe` standalone (no login needed).
@@ -200,6 +217,7 @@ export TG_STT_MODEL=large-v3-turbo   # recommended for Arabic
 | `systemctl not found` | The daemon needs systemd; use `tlgrm listen` directly |
 | Cannot create an app at my.telegram.org | Brand-new accounts are sometimes blocked; wait and retry |
 | MCP tool not available | Check the permission tier — write/destructive tools need explicit flags |
+| `tlgrm ui` says the UI extra is missing | `pip install "tlgrm[ui]"` or `uv tool install "tlgrm[ui]"` |
 
 ---
 

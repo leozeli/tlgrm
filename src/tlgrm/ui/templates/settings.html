@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Settings <small>设置</small></h1>
+<p class="muted">Credentials and proxy values are stored in <code>~/.tlgrm/ui.env</code> (owner-only). A variable already exported in the environment wins. Restart <code>tlgrm server</code> after a proxy change. Secrets are never shown again.</p>
+{% if settings.env_overrides_file %}
+<p class="flash warn">An exported variable overrides a different value in the env file.</p>
+{% endif %}
+{% if settings.proxy_error %}
+<p class="flash err">{{ settings.proxy_error }}</p>
+{% endif %}
+<section class="grid">
+  <article class="card">
+    <h2>API credentials</h2>
+    <dl>
+      <div><dt>TG_API_ID</dt><dd>{{ "Set" if settings.api_id_set else "Not set" }} <small>{{ settings.api_id_source }}</small></dd></div>
+      <div><dt>TG_API_HASH</dt><dd>{{ "Set" if settings.api_hash_set else "Not set" }} <small>{{ settings.api_hash_source }}</small></dd></div>
+    </dl>
+    <form method="post" action="/settings" class="stack" autocomplete="off">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      {% if account %}<input type="hidden" name="account" value="{{ account }}">{% endif %}
+      <label>
+        <span>Replace api id</span>
+        <input name="api_id" inputmode="numeric" placeholder="Leave blank to keep" autocomplete="off">
+      </label>
+      <label>
+        <span>Replace api hash</span>
+        <input name="api_hash" type="password" placeholder="Leave blank to keep" autocomplete="new-password">
+      </label>
+      <button type="submit" name="action" value="save_credentials">Save credentials</button>
+    </form>
+    <p class="muted">Create an app at my.telegram.org. Blank fields keep the current value.</p>
+  </article>
+  <article class="card">
+    <h2>Network</h2>
+    <p class="muted">For restricted networks. Set SOCKS or MTProxy, one of them. SOCKS needs <code>python-socks</code> or PySocks. Mode now: <strong>{{ settings.proxy_mode }}</strong>.</p>
+    <form method="post" action="/settings" class="stack" autocomplete="off">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      {% if account %}<input type="hidden" name="account" value="{{ account }}">{% endif %}
+      <fieldset>
+        <legend>SOCKS <small>{{ settings.proxy_source }}</small></legend>
+        <label>
+          <span>TG_PROXY_HOST</span>
+          <input name="proxy_host" value="{{ settings.proxy_host }}" placeholder="127.0.0.1" autocomplete="off">
+        </label>
+        <label>
+          <span>TG_PROXY_PORT</span>
+          <input name="proxy_port" value="{{ settings.proxy_port }}" inputmode="numeric" placeholder="1080" autocomplete="off">
+        </label>
+        <label>
+          <span>TG_PROXY_TYPE</span>
+          <select name="proxy_type">
+            {% for kind in ["socks5", "socks4", "http"] %}
+            <option value="{{ kind }}" {% if settings.proxy_type == kind %}selected{% endif %}>{{ kind }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>MTProxy <small>{{ settings.mtproxy_source }}</small></legend>
+        <label>
+          <span>TG_MTPROXY_HOST</span>
+          <input name="mtproxy_host" value="{{ settings.mtproxy_host }}" autocomplete="off">
+        </label>
+        <label>
+          <span>TG_MTPROXY_PORT</span>
+          <input name="mtproxy_port" value="{{ settings.mtproxy_port }}" inputmode="numeric" autocomplete="off">
+        </label>
+        <label>
+          <span>TG_MTPROXY_SECRET {% if settings.mtproxy_secret_set %}· set{% else %}· not set{% endif %}</span>
+          <input name="mtproxy_secret" type="password" placeholder="Leave blank to keep" autocomplete="new-password">
+        </label>
+        <label class="check">
+          <input type="checkbox" name="clear_mtproxy_secret" value="1">
+          <span>Clear saved secret</span>
+        </label>
+      </fieldset>
+      <button type="submit" name="action" value="save_proxy">Save proxy</button>
+    </form>
+    <p class="muted">Leave both host fields empty to clear that proxy. The client reads these when it opens a connection.</p>
+  </article>
+</section>
+{% endblock %}

@@ -99,8 +99,9 @@ def test_get_client_uses_resolved_session(monkeypatch):
     captured = {}
 
     class _FakeClient:
-        def __init__(self, session, api_id, api_hash):
+        def __init__(self, session, api_id, api_hash, **kwargs):
             captured["session"] = session
+            captured["kwargs"] = kwargs
 
     monkeypatch.setattr(client, "TelegramClient", _FakeClient)
     monkeypatch.setattr(client, "ensure_dirs", lambda: None)
@@ -118,7 +119,7 @@ def test_get_client_uses_account_session(monkeypatch, tmp_path):
     captured = {}
 
     class _FakeClient:
-        def __init__(self, session, api_id, api_hash):
+        def __init__(self, session, api_id, api_hash, **kwargs):
             captured["session"] = session
 
     monkeypatch.setattr(client, "TelegramClient", _FakeClient)

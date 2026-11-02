@@ -41,6 +41,12 @@ stt = ["faster-whisper>=1.0"]
 stt-whisper = ["openai-whisper>=20231117"]
 stt-all = ["tlgrm[stt,stt-whisper]"]
 mcp = ["mcp>=1.2"]
+ui = [
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+    "jinja2>=3.1",
+    "python-multipart>=0.0.9",
+]
 dev = [
     "pytest>=7.0",
     "pytest-asyncio>=0.23",
@@ -51,7 +57,7 @@ dev = [
     "pyrefly>=1.0.0",
     "prek>=0.3.13",
 ]
-all = ["tlgrm[mcp,stt]"]
+all = ["tlgrm[mcp,stt,ui]"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -90,6 +96,14 @@ replace-imports-with-any = [
     "whisper",
     "mcp",
     "mcp.*",
+    "fastapi",
+    "fastapi.*",
+    "starlette",
+    "starlette.*",
+    "uvicorn",
+    "uvicorn.*",
+    "jinja2",
+    "jinja2.*",
     # py<3.11 fallback shim for stdlib tomllib; not installed on newer runtimes.
     "tomli",
 ]

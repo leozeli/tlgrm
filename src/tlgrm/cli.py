@@ -176,6 +176,10 @@ def main() -> None:
                     value=getattr(args, "mode", None),
                     tokens=_split_tokens(getattr(args, "targets", None)),
                 )
+            case "ui":
+                from .ui.server import serve
+
+                serve(args.host, args.port)
             case "stt":
                 from . import sttctl
 

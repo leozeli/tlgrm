@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Send <small>发送</small></h1>
+<p class="muted">Goes through the write guard. A blocked target is refused before anything is sent.</p>
+{% if acc_err %}
+<p class="flash err">{{ acc_err }}</p>
+{% endif %}
+<form method="post" action="/send" class="stack">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  {% if account %}<input type="hidden" name="account" value="{{ account }}">{% endif %}
+  {% if chats %}
+  <label>
+    <span>Chat <small>会话</small></span>
+    <select name="target">
+      <option value="">Choose…</option>
+      {% for chat in chats %}
+      <option value="{{ chat.id }}" {% if target == (chat.id|string) %}selected{% endif %}>{{ chat.name or chat.id }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  {% endif %}
+  <label>
+    <span>Target <small>目标</small></span>
+    <input name="target_manual" value="{{ target }}" placeholder="@username, id, or phone" autocomplete="off">
+  </label>
+  <label>
+    <span>Text <small>内容</small></span>
+    <textarea name="text" rows="5" required placeholder="Message"></textarea>
+  </label>
+  <button type="submit" {% if not account %}disabled{% endif %}>Send</button>
+</form>
+{% endblock %}
