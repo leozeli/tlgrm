@@ -16,7 +16,10 @@ If `TG_API_ID` or `TG_API_HASH` is missing, tlgrm prints setup instructions and 
 ## Accounts (multi-login)
 
 tlgrm supports multiple Telegram accounts, each a named login with its own
-session under `~/.tlgrm/accounts/<name>.session`.
+session under `~/.tlgrm/accounts/<name>.session`. Names are limited to
+letters, digits, `.`, `_`, and `-` (1–64 characters, starting with a letter or
+digit). Path-traversal names (`..`, slashes) are rejected, and the session path
+is resolved and checked so it cannot leave the accounts directory.
 
 ```bash
 tlgrm account add personal     # interactive login
@@ -215,14 +218,14 @@ tlgrm server install        # run the server on boot (or: tlgrm server start)
 
 | Path | Created by | Contents |
 |------|-----------|----------|
-| `~/.tlgrm/` | tlgrm (on first run) | Application data root |
+| `~/.tlgrm/` | tlgrm (on first run) | Application data root (owner-only, `0700`) |
 | `~/.tlgrm/tg_session.session` | `tlgrm login` | **Sensitive** — your authenticated session |
-| `~/.tlgrm/downloads/` | webhook listener | Auto-downloaded incoming media |
+| `~/.tlgrm/downloads/` | webhook listener | Auto-downloaded incoming media (owner-only, `0700`) |
 | `~/.tlgrm/config.toml` | user (optional) | STT backend preferences |
 | `~/.config/systemd/user/tlgrm-daemon.service` | `tlgrm daemon install` | systemd unit (written `0600`) |
 | `~/.tlgrm/daemon.env` | `tlgrm daemon install` | env snapshot the service loads (owner-only `0600`) |
 
-> **Security:** the session file grants full access to your Telegram account, and the systemd unit may embed webhook auth headers. Both are kept private. Never commit them to version control — the default `.gitignore` already excludes session files.
+> **Security:** the session file grants full access to your Telegram account, and the systemd unit may embed webhook auth headers. `~/.tlgrm/` and the downloads directory are created owner-only (`0700`). Never commit session files to version control — the default `.gitignore` already excludes them.
 
 ## Changing storage locations
 

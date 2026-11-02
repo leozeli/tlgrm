@@ -1,5 +1,7 @@
 # tests/test_config.py
 import base64
+import os
+import stat
 
 import pytest
 from tlgrm import config
@@ -46,6 +48,38 @@ def test_env_overrides_bundled(monkeypatch):
     monkeypatch.setenv("TG_API_ID", "111")
     monkeypatch.setenv("TG_API_HASH", "envhash")
     assert config.get_api_credentials() == (111, "envhash")
+
+
+def test_ensure_dirs_forces_0700_on_home_and_downloads(monkeypatch, tmp_path):
+    home = tmp_path / "dot-tlgrm"
+    home.mkdir()
+    home.chmod(0o755)
+    downloads = home / "downloads"
+    downloads.mkdir()
+    downloads.chmod(0o755)
+    custom = tmp_path / "custom"
+    custom.mkdir()
+    custom.chmod(0o755)
+
+    real_expanduser = os.path.expanduser
+
+    def expand(path):
+        if path == "~/.tlgrm":
+            return str(home)
+        if path.startswith("~/"):
+            return str(tmp_path / path[2:])
+        return real_expanduser(path)
+
+    monkeypatch.setattr(config.os.path, "expanduser", expand)
+    monkeypatch.setattr(config, "DOWNLOADS_DIR", str(downloads))
+    monkeypatch.setenv("TG_SESSION_PATH", str(custom / "sess"))
+
+    config.ensure_dirs()
+
+    assert stat.S_IMODE(home.stat().st_mode) == 0o700
+    assert stat.S_IMODE(downloads.stat().st_mode) == 0o700
+    # A session directory outside ~/.tlgrm is created, but not chmod'd.
+    assert stat.S_IMODE(custom.stat().st_mode) == 0o755
 
 
 def test_session_path_default(monkeypatch):

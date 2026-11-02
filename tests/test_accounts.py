@@ -118,6 +118,70 @@ def test_resolve_account_none_configured_raises(tmp_home):
         accounts.resolve_account()
 
 
+@pytest.mark.parametrize(
+    "name",
+    [
+        "",
+        ".",
+        "..",
+        "../x",
+        "a/b",
+        "a\\b",
+        "a..b",
+        " has",
+        "has space",
+        "-bad",
+        ".hidden",
+        "a" * 65,
+        "na\x00me",
+        "foo/../../etc",
+    ],
+)
+def test_unsafe_account_names_rejected(tmp_home, name):
+    with pytest.raises(accounts.TlgrmError):
+        accounts.add_account(name)
+    with pytest.raises(accounts.TlgrmError):
+        accounts.account_session_path(name)
+    if name:
+        # "" is treated as "no account" by session_path_for and falls back to
+        # "default"; every other unsafe name must still be rejected on the
+        # login path (must_exist=False), which is where the session is written.
+        with pytest.raises(accounts.TlgrmError):
+            accounts.session_path_for(name, must_exist=False)
+    assert name not in accounts.load_config()["accounts"]
+
+
+@pytest.mark.parametrize("name", ["a", "work", "Work_2", "personal-1", "a.b", "a" * 64])
+def test_safe_account_names_accepted(tmp_home, name):
+    accounts.add_account(name)
+    path = accounts.account_session_path(name)
+    base = os.path.realpath(accounts._accounts_dir())
+    assert os.path.dirname(os.path.realpath(path)) == base
+    assert os.path.basename(path) == f"{name}.session"
+    assert stat.S_IMODE(os.stat(base).st_mode) == 0o700
+
+
+def test_rename_rejects_traversal_without_dropping_source(tmp_home):
+    accounts.add_account("a")
+    with pytest.raises(accounts.TlgrmError):
+        accounts.rename_account("a", "../b")
+    cfg = accounts.load_config()
+    assert "a" in cfg["accounts"]
+    assert "../b" not in cfg["accounts"]
+
+
+def test_session_path_rejects_symlink_escape(tmp_home):
+    accounts.add_account("work")
+    base = accounts._accounts_dir()
+    outside = tmp_home / "outside"
+    outside.mkdir()
+    link = os.path.join(base, "work.session")
+    os.symlink(str(outside / "stolen.session"), link)
+    with pytest.raises(accounts.TlgrmError):
+        accounts.account_session_path("work")
+    assert not (outside / "stolen.session").exists()
+
+
 def test_migrate_legacy_session(tmp_home, monkeypatch):
     legacy = tmp_home / "tg_session.session"
     legacy.write_text("session-data")

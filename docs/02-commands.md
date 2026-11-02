@@ -718,7 +718,7 @@ Listen for **incoming** messages in the foreground and optionally forward them t
 
 | Flag | Type | Description |
 |------|------|-------------|
-| `--webhook-url` | URL | Endpoint to POST each message to (omit to print to console) |
+| `--webhook-url` | URL | http(s) endpoint to POST each message to (omit to print to console) |
 | `--webhook-header` | `"Name: Value"` | Custom header to include in the POST (repeatable) |
 | `--only` | `CHAT` | Whitelist: only forward messages whose chat or sender matches (`@username`, id, or phone). Repeatable / comma-separated. |
 | `--ignore` | `CHAT` | Blacklist: never forward messages whose chat or sender matches. Repeatable / comma-separated. |
@@ -747,7 +747,7 @@ Manage tlgrm as a background `systemd` **user** service. Requires `systemd`/`sys
 
 | Flag | Type | Required | Description |
 |------|------|----------|-------------|
-| `--webhook-url` | URL | Yes | Endpoint to forward messages to |
+| `--webhook-url` | URL | Yes | http(s) endpoint to forward messages to |
 | `--webhook-header` | `"Name: Value"` | No | Custom header (repeatable) |
 | `--only` | `CHAT` | No | Whitelist chats/users to listen to (repeatable / comma-separated) |
 | `--ignore` | `CHAT` | No | Blacklist chats/users to ignore (repeatable / comma-separated) |

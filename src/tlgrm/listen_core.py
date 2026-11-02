@@ -15,6 +15,7 @@ from telethon import TelegramClient, utils
 from .config import DOWNLOADS_DIR
 from .core import serialize
 from .stt import transcribe_audio
+from .webhook_url import validate_webhook_url
 
 logger = logging.getLogger("tlgrm-listen")
 
@@ -25,6 +26,11 @@ async def forward_webhook(
     headers: dict[str, str] | None = None,
     retries: int = 3,
 ) -> None:
+    try:
+        validate_webhook_url(url)
+    except ValueError as e:
+        logger.error(f"Refusing webhook URL: {e}")
+        return
     for attempt in range(1, retries + 1):
         try:
             async with httpx.AsyncClient() as client:

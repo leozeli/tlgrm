@@ -46,6 +46,15 @@ def test_filter_mode_and_list(tmp_home):
     assert accounts.listen_config("work")["filter"]["list"] == []
 
 
+def test_set_webhook_rejects_dangerous_scheme(tmp_home):
+    with pytest.raises(accounts.TlgrmError):
+        accounts.set_webhook("work", "ftp://example.com/hook")
+    assert accounts.listen_config("work")["webhook_url"] is None
+    with pytest.raises(accounts.TlgrmError):
+        accounts.set_webhook("work", "http://example.com/hook\nX-Injected: 1")
+    assert accounts.listen_config("work")["webhook_url"] is None
+
+
 def test_bad_mode_raises(tmp_home):
     with pytest.raises(accounts.TlgrmError):
         accounts.filter_set_mode("work", "listen", "nonsense")

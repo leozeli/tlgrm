@@ -42,7 +42,7 @@ tlgrm listen --webhook-url https://example.com/webhook \
              --webhook-header "X-Client-ID: personal-bot"
 ```
 
-Header values are redacted from logs.
+Header values are redacted from logs. The receiver must check `Authorization` (or whichever secret header you send) and reject requests that do not match — tlgrm only attaches the header; it does not authenticate callers for you.
 
 ---
 
@@ -105,7 +105,7 @@ tlgrm daemon install --webhook-url https://your-server.com/webhook \
                      --webhook-header "Authorization: Bearer YOUR_TOKEN"
 ```
 
-> The webhook URL and headers are validated before the unit is written (no whitespace, control characters, or quotes that could corrupt the unit file).
+> The webhook URL and headers are validated before the unit is written (http or https only; no whitespace, control characters, or quotes that could corrupt the unit file). The same URL check is applied to `tlgrm listen` and `tlgrm webhook set`. Header values are redacted in the install command's JSON result; the unit file still stores them and is mode `0600`. The receiver must validate `Authorization`.
 
 If the STT extra is installed, the daemon pre-warms the model at startup so the first voice note transcribes without delay.
 
@@ -192,7 +192,7 @@ Each webhook POST sends a JSON body with this structure:
 | `message.date` | string | ISO-8601 send time |
 | `message.reply_to_msg_id` | int or null | ID of the message being replied to, if any |
 | `chat.type` | string | `user`, `group`, `channel`, or `unknown` |
-| `sender.*` | object | Sender identity fields (may be empty per privacy settings) |
+| `sender.*` | object | Sender identity fields (may be empty per privacy settings). `phone` is masked (`+601****6023`), never the raw number |
 | `media.present` | bool | Whether the message has media |
 | `media.type` | string or null | `photo`, `voice`, `video`, `audio`, `document`, or `other` |
 | `media.local_path` | string or null | Absolute path to the downloaded file |
@@ -216,4 +216,4 @@ tlgrm daemon install --webhook-url https://example.com/webhook
 - Failed POSTs are retried up to 3 times with exponential backoff, then logged and dropped.
 - A `2xx` response is considered success; anything else is logged as an error (to stderr).
 
-> tlgrm does not currently sign webhook payloads (e.g. HMAC). If your endpoint is public, protect it with a secret header and verify it server-side.
+> tlgrm does not currently sign webhook payloads (e.g. HMAC). If your endpoint is public, send a secret header such as `Authorization` and validate it on the receiver — reject any request that does not match.

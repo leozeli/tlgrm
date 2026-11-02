@@ -5,10 +5,11 @@ from typing import Any
 from telethon import events
 
 from .core.client import get_client, ensure_authorized
-from .core.errors import NotAuthorizedError
+from .core.errors import NotAuthorizedError, TlgrmError
 from .stt import preload
 from . import listen_core
 from . import accounts
+from .webhook_url import validate_webhook_url
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,6 +26,11 @@ async def run_listener(
     only: list[str] | None = None,
     ignore: list[str] | None = None,
 ) -> None:
+    if webhook_url:
+        try:
+            validate_webhook_url(webhook_url)
+        except ValueError as e:
+            raise TlgrmError(str(e)) from e
     if verbose:
         logger.setLevel(logging.DEBUG)
     client = get_client()

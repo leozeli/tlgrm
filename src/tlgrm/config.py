@@ -60,7 +60,23 @@ def get_api_credentials() -> tuple[int, str]:
     raise CredentialsError(_CREDENTIALS_HELP)
 
 
+def _private_dir(path: str) -> None:
+    """Create `path` and force mode 0700 (makedirs' mode is not reapplied
+    when the directory already exists, and umask can widen a create)."""
+    os.makedirs(path, mode=0o700, exist_ok=True)
+    os.chmod(path, 0o700)
+
+
 def ensure_dirs() -> None:
-    """Create the session and downloads directories if they don't exist."""
-    os.makedirs(os.path.dirname(session_path()), exist_ok=True)
-    os.makedirs(DOWNLOADS_DIR, exist_ok=True)
+    """Create ~/.tlgrm and the downloads directory, both owner-only (0700).
+
+    A custom session parent (TG_SESSION_PATH outside ~/.tlgrm) is still
+    created so Telethon can open it, but only the tlgrm home and the
+    downloads directory are forced to 0700.
+    """
+    home = os.path.expanduser("~/.tlgrm")
+    _private_dir(home)
+    session_dir = os.path.dirname(session_path())
+    if session_dir and os.path.abspath(session_dir) != os.path.abspath(home):
+        os.makedirs(session_dir, exist_ok=True)
+    _private_dir(DOWNLOADS_DIR)
