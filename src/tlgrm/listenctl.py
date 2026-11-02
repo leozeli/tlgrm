@@ -2,6 +2,7 @@
 and, if a server is running, pushes a `reload` so the change applies live."""
 
 from . import accounts, ipc
+from .core.errors import TlgrmError
 from .output import emit
 
 
@@ -17,7 +18,11 @@ def set_enabled(account: str, enabled: bool) -> None:
 
 
 def webhook_set(account: str, url: str, headers: list[str] | None = None) -> None:
-    accounts.set_webhook(account, url, headers)
+    try:
+        accounts.set_webhook(account, url, headers)
+    except TlgrmError as e:
+        emit({"success": False, "error": str(e)})
+        return
     _push_reload(account)
     emit({"success": True, "account": account, "webhook_url": url})
 

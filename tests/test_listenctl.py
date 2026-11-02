@@ -19,6 +19,18 @@ def test_enable_disable(tmp_home, capsys):
     assert accounts.listen_config("work")["enabled"] is False
 
 
+def test_webhook_set_rejects_non_http_and_does_not_save(tmp_home, monkeypatch, capsys):
+    pushed = {}
+    monkeypatch.setattr(ipc, "is_server_running", lambda: True)
+    monkeypatch.setattr(ipc, "request_sync", lambda *a, **k: pushed.update(called=True))
+    listenctl.webhook_set("work", "file:///tmp/hook", ["Authorization: Bearer SECRET"])
+    out = capsys.readouterr().out
+    assert '"success": false' in out
+    assert "SECRET" not in out
+    assert accounts.listen_config("work")["webhook_url"] is None
+    assert pushed == {}
+
+
 def test_webhook_set_show_clear(tmp_home, capsys):
     listenctl.webhook_set("work", "https://x", ["A: b"])
     assert accounts.listen_config("work")["webhook_url"] == "https://x"

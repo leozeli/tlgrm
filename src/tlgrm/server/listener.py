@@ -8,6 +8,7 @@ from typing import Any, cast
 from telethon import TelegramClient, events
 
 from .. import listen_core
+from ..webhook_url import validate_webhook_url
 
 logger = logging.getLogger("tlgrm-server")
 
@@ -28,7 +29,14 @@ class AccountListener:
         cfg = accounts.listen_config(self.account)
         st = listen_core.ListenState()
         st.enabled = cfg["enabled"]
-        st.webhook_url = cfg["webhook_url"]
+        url = cfg["webhook_url"]
+        if url:
+            try:
+                validate_webhook_url(url)
+            except ValueError as e:
+                logger.error(f"[{self.account}] ignoring webhook URL: {e}")
+                url = None
+        st.webhook_url = url
         st.headers = listen_core.parse_headers(cfg["webhook_headers"])
         st.mode = cfg["filter"]["mode"]
         st.ids, st.names = await listen_core._resolve_filters(

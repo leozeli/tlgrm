@@ -9,9 +9,31 @@ back on every change, so it deliberately preserves unrelated sections (e.g.
 """
 
 import os
+import re
 from typing import Any
 
 from .core.errors import TlgrmError
+
+# Account names become a single path segment under ~/.tlgrm/accounts.
+# Letters, digits, and a small bit of punctuation only — no separators, and
+# no ".." — so a name cannot climb out of that directory.
+_ACCOUNT_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
+
+
+def validate_account_name(name: str) -> str:
+    """Reject path-traversal and other unsafe account names.
+
+    Allowed: 1–64 characters from letters, digits, ``.``, ``_``, and ``-``,
+    starting with a letter or digit. A name containing ``..`` is rejected
+    even though the rest of the character set would allow it.
+    """
+    if not isinstance(name, str) or not _ACCOUNT_NAME.fullmatch(name) or ".." in name:
+        raise TlgrmError(
+            f"Invalid account name {name!r}. Use 1-64 characters from "
+            "letters, digits, '.', '_' or '-', starting with a letter or digit, "
+            "and do not include '..' or path separators."
+        )
+    return name
 
 
 def _config_path() -> str:
@@ -69,10 +91,29 @@ def save_config(data: dict[str, Any]) -> None:
 
 
 def account_session_path(name: str) -> str:
-    return os.path.join(_accounts_dir(), f"{name}.session")
+    """Session file for `name`, resolved and confined to the accounts directory.
+
+    The accounts directory is created owner-only (0700) before the path is
+    returned, so a login cannot write the session into a directory that was
+    just created world-readable. The resolved path must stay directly inside
+    that directory — a symlinked session file pointing elsewhere is refused.
+    """
+    validate_account_name(name)
+    base = os.path.realpath(_accounts_dir())
+    os.makedirs(base, mode=0o700, exist_ok=True)
+    os.chmod(base, 0o700)
+    filename = f"{name}.session"
+    candidate = os.path.join(base, filename)
+    resolved = os.path.realpath(candidate)
+    if os.path.dirname(resolved) != base or os.path.basename(resolved) != filename:
+        raise TlgrmError(
+            f"Account session path escapes the accounts directory: {name!r}."
+        )
+    return candidate
 
 
 def add_account(name: str) -> None:
+    validate_account_name(name)
     cfg = load_config()
     cfg["accounts"].setdefault(name, {})
     if not cfg.get("default_account"):
@@ -90,16 +131,19 @@ def set_default(name: str) -> None:
 
 
 def rename_account(old: str, new: str) -> None:
+    validate_account_name(new)
     cfg = load_config()
     if old not in cfg["accounts"]:
         raise TlgrmError(f"No such account: {old!r}.")
     if new in cfg["accounts"]:
         raise TlgrmError(f"Account already exists: {new!r}.")
+    # Resolve both paths before rewriting config so a containment failure
+    # cannot leave the registry pointing at a session that was not moved.
+    src, dst = account_session_path(old), account_session_path(new)
     cfg["accounts"][new] = cfg["accounts"].pop(old)
     if cfg.get("default_account") == old:
         cfg["default_account"] = new
     save_config(cfg)
-    src, dst = account_session_path(old), account_session_path(new)
     if os.path.exists(src):
         os.replace(src, dst)
 
@@ -208,6 +252,12 @@ def set_listen_enabled(name: str, enabled: bool) -> None:
 
 
 def set_webhook(name: str, url: str, headers: list[str] | None = None) -> None:
+    from .webhook_url import validate_webhook_url
+
+    try:
+        validate_webhook_url(url)
+    except ValueError as e:
+        raise TlgrmError(str(e)) from e
     cfg = load_config()
     acc = _account(cfg, name)
     acc["webhook_url"] = url

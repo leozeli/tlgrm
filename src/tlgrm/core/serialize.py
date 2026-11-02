@@ -77,14 +77,37 @@ def serialize_member(user: Any) -> dict[str, Any]:
     }
 
 
+def mask_phone(phone: Any) -> str:
+    """Mask a phone number for webhook payloads.
+
+    Matches the documented example shape ``+601****6023``: a 4-character
+    prefix, a fixed ``****``, and the last 4 characters. Shorter values are
+    fully masked so the payload never contains the raw number. Missing
+    phones stay an empty string.
+    """
+    if phone is None:
+        return ""
+    raw = str(phone).strip()
+    if not raw:
+        return ""
+    if len(raw) < 12:
+        return "****"
+    return f"{raw[:4]}****{raw[-4:]}"
+
+
 def serialize_sender(sender: Any) -> dict[str, Any]:
-    """Serialize a message sender for webhook payloads."""
+    """Serialize a message sender for webhook payloads.
+
+    ``phone`` is masked. CLI serializers (``serialize_user``,
+    ``serialize_member``) still return the number Telegram shared — those
+    responses stay on the operator's machine.
+    """
     return {
         "id": getattr(sender, "id", None),
         "first_name": getattr(sender, "first_name", ""),
         "last_name": getattr(sender, "last_name", ""),
         "username": getattr(sender, "username", ""),
-        "phone": getattr(sender, "phone", ""),
+        "phone": mask_phone(getattr(sender, "phone", None)),
         "display_name": utils.get_display_name(sender) if sender else "Unknown",
     }
 

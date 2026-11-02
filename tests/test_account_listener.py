@@ -46,6 +46,22 @@ async def test_reload_builds_state_from_config(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_reload_ignores_non_http_webhook(monkeypatch):
+    monkeypatch.setattr(
+        "tlgrm.accounts.listen_config",
+        lambda name: {
+            "enabled": True,
+            "webhook_url": "file:///etc/passwd",
+            "webhook_headers": [],
+            "filter": {"mode": "block", "list": []},
+        },
+    )
+    lis = AccountListener(_FakeClient(), "work")
+    await lis.reload()
+    assert lis.state.enabled is True
+    assert lis.state.webhook_url is None
+
+
 async def test_start_registers_one_handler_and_stop_removes(monkeypatch):
     monkeypatch.setattr(
         "tlgrm.accounts.listen_config",

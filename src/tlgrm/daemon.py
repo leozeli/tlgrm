@@ -3,7 +3,8 @@ import sys
 import shutil
 import subprocess
 import json
-from urllib.parse import urlparse
+
+from .webhook_url import validate_webhook_url
 
 SERVICE_NAME = "tlgrm-daemon"
 USER_SERVICE_DIR = os.path.expanduser("~/.config/systemd/user")
@@ -61,16 +62,11 @@ def _write_env_file() -> list[str]:
     return [line.split("=", 1)[0] for line in lines]
 
 
-def validate_webhook_url(url: str) -> None:
-    """Reject URLs that aren't plain http(s) or that could break/inject the
-    systemd unit file (whitespace, newlines, control characters)."""
-    parsed = urlparse(url)
-    if parsed.scheme not in ("http", "https") or not parsed.netloc:
-        raise ValueError(f"Invalid webhook URL (must be http/https): {url!r}")
-    if any(c.isspace() or ord(c) < 32 for c in url):
-        raise ValueError(
-            "Webhook URL must not contain whitespace or control characters"
-        )
+def _redact_header_value(header: str) -> str:
+    """Show the header name but hide its value (it may carry a bearer token)."""
+    if ":" not in header:
+        return "[REDACTED]"
+    return f"{header.split(':', 1)[0].strip()}: [REDACTED]"
 
 
 def validate_filter_tokens(tokens: list[str] | None) -> None:
@@ -228,7 +224,9 @@ WantedBy=default.target
                     "env_file": ENV_FILE_PATH,
                     "captured_env": captured_env,
                     "webhook_url": webhook_url,
-                    "webhook_headers": webhook_headers or [],
+                    "webhook_headers": [
+                        _redact_header_value(h) for h in (webhook_headers or [])
+                    ],
                     "only": only or [],
                     "ignore": ignore or [],
                     "executable": tlgrm_path,
