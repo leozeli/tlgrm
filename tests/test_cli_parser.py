@@ -125,6 +125,29 @@ def test_schedule_subcommands():
     assert a.schedule_command == "cancel" and a.ids == [5, 6]
 
 
+def test_ui_command_defaults_to_loopback():
+    parser = build_parser()
+    args = parser.parse_args(["ui"])
+    assert args.command == "ui"
+    assert args.host == "127.0.0.1"
+    assert args.port == 8765
+    args = parser.parse_args(["ui", "--host", "0.0.0.0", "--port", "9000"])
+    assert args.host == "0.0.0.0"
+    assert args.port == 9000
+
+
+def test_ui_command_dispatches(monkeypatch):
+    called = {}
+    monkeypatch.setattr(sys, "argv", ["tlgrm", "ui", "--port", "8799"])
+    from tlgrm.ui import server as ui_server
+
+    monkeypatch.setattr(
+        ui_server, "serve", lambda host, port: called.update(host=host, port=port)
+    )
+    cli.main()
+    assert called == {"host": "127.0.0.1", "port": 8799}
+
+
 def test_version_flag_exits_zero_and_prints(capsys):
     parser = build_parser()
     with pytest.raises(SystemExit) as exc:

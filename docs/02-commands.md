@@ -37,6 +37,9 @@ tlgrm account remove NAME
 tlgrm server start [--foreground] | stop | restart | status
 tlgrm server install | uninstall | logs   # run it as a systemd user service
 
+# Local dashboard (needs the ui extra: pip install "tlgrm[ui]")
+tlgrm ui [--host 127.0.0.1] [--port 8765]
+
 # Per-account listening
 tlgrm -a NAME listening enable | disable
 tlgrm -a NAME listening window set 09:00-17:00 | show | clear
@@ -54,6 +57,25 @@ tlgrm schedule send --target T --text "…" --at "2026-06-20 09:00" | --in 2h
 tlgrm schedule list --target T
 tlgrm schedule cancel --target T --id ID…
 ```
+
+---
+
+## `tlgrm ui`
+
+Open a local web dashboard for the common tasks: account status, recent chats and history, sending a text message, listening/webhook settings, and credential/proxy settings.
+
+```bash
+tlgrm ui                    # http://127.0.0.1:8765
+tlgrm ui --port 9000
+tlgrm ui --host 127.0.0.1
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--host` | string | `127.0.0.1` | Bind address. Any other value prints a warning. |
+| `--port` | int | `8765` | TCP port |
+
+Requires the `ui` extra (`pip install "tlgrm[ui]"`). The page talks to the background server (and starts one if needed), so it follows the same permission tiers and write guard as the CLI. It does not print session paths, `api_hash`, phone numbers, or webhook bearer tokens in its log lines.
 
 ---
 

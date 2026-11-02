@@ -33,6 +33,7 @@ With [`uv`](https://docs.astral.sh/uv/) (recommended):
 uv tool install tlgrm
 uv tool install "tlgrm[mcp]"   # + MCP server
 uv tool install "tlgrm[stt]"   # + speech-to-text
+uv tool install "tlgrm[ui]"    # + local web dashboard
 uv tool install "tlgrm[all]"   # everything
 ```
 
@@ -42,6 +43,7 @@ Or with `pip`:
 pip install tlgrm
 pip install "tlgrm[mcp]"
 pip install "tlgrm[stt]"
+pip install "tlgrm[ui]"
 pip install "tlgrm[all]"
 ```
 
@@ -115,3 +117,4 @@ If you have an NVIDIA GPU, faster-whisper uses it automatically (CUDA 12 runtime
 - Forward incoming messages to an HTTP endpoint with the [Webhook & Daemon Guide](05-webhook-guide.md).
 - Tune paths and behavior via [Configuration](03-configuration.md).
 - Expose Telegram tools to an AI assistant: see [the MCP guide](04-mcp.md).
+- Prefer a page over flags: `pip install "tlgrm[ui]"` then `tlgrm ui` (localhost only).

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Status <small>状态</small></h1>
+{% if acc_err %}
+<p class="flash err">{{ acc_err }}</p>
+{% endif %}
+<section class="grid">
+  <article class="card">
+    <h2>Account</h2>
+    {% if me %}
+    <p class="who">
+      <strong>{{ me.first_name }} {{ me.last_name }}</strong>
+      {% if me.username %}<span class="muted">@{{ me.username }}</span>{% endif %}
+    </p>
+    <dl>
+      <div><dt>Id</dt><dd>{{ me.id }}</dd></div>
+      <div><dt>Phone</dt><dd>{{ me.phone_masked or "—" }}</dd></div>
+      <div><dt>Profile</dt><dd>{{ account }}</dd></div>
+    </dl>
+    {% elif me_err %}
+    <p>{{ me_err }}</p>
+    <p class="muted">Log in from a terminal: <code>tlgrm login</code></p>
+    {% else %}
+    <p>No account configured.</p>
+    <p class="muted">Run <code>tlgrm login</code> or <code>tlgrm account add</code> in a terminal.</p>
+    {% endif %}
+  </article>
+  <article class="card">
+    <h2>Server</h2>
+    <p class="lamp {% if server_running %}on{% else %}off{% endif %}">
+      {{ "Running" if server_running else "Stopped" }}
+    </p>
+    <p class="muted">The dashboard uses the background server so it can share the session with the CLI and MCP.</p>
+  </article>
+  <article class="card">
+    <h2>Listening</h2>
+    {% if listen %}
+    <p class="lamp {% if listen.enabled %}on{% else %}off{% endif %}">
+      {{ "On" if listen.enabled else "Off" }}
+    </p>
+    <dl>
+      <div><dt>Webhook</dt><dd>{{ listen.webhook_masked or "Not set" }}</dd></div>
+      <div><dt>Window</dt><dd>{{ listen.window or "All day" }}</dd></div>
+      <div><dt>Listen filter</dt><dd>{{ listen.listen_summary }}</dd></div>
+    </dl>
+    {% else %}
+    <p class="muted">Available after an account is configured.</p>
+    {% endif %}
+  </article>
+</section>
+{% endblock %}

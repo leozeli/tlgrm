@@ -70,6 +70,10 @@ explicitly asks, and confirm first.
 ### Destructive tier (`--allow-write --allow-destructive`)
 `delete_messages`, `leave_chat`, `remove_members`.
 
+## Local dashboard
+
+`tlgrm ui` (extra: `tlgrm[ui]`) opens http://127.0.0.1:8765 — status, chats, send, listening. Same server and write guard as the CLI. Prefer the CLI or MCP when you are driving Telegram yourself.
+
 ## Output
 
 Success for write ops: `{"success": true, ...}`. Failures: `{"success": false, "error": "..."}`.

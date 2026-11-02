@@ -85,6 +85,10 @@ Transcribe a local audio file on demand — no Telegram login required.
 
 ## AI assistants (MCP)
 
+### Local dashboard — 🔵 Server
+A localhost page for status, recent chats, sending, and listen/webhook settings. It uses the same background server as the CLI (and starts one if needed).
+`tlgrm ui`
+
 ### MCP server — 🔵 Server
 Expose your Telegram account to AI assistants (Claude, etc.) as tools — read-only by default, with opt-in write and destructive tiers. It's a thin bridge to the background server (which it auto-starts), so it coexists with the CLI and the listener on one connection. See **[MCP guide](04-mcp.md)**.
 

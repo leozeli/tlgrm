@@ -4,11 +4,17 @@ and, if a server is running, pushes a `reload` so the change applies live."""
 from . import accounts, ipc
 from .core.errors import TlgrmError
 from .output import emit
+from .redact import redact_header
+
+
+def push_reload(account: str) -> None:
+    """Ask a running server to reload this account's listen config."""
+    if ipc.is_server_running():
+        ipc.request_sync("reload", account=account, args={}, tier="read")
 
 
 def _push_reload(account: str) -> None:
-    if ipc.is_server_running():
-        ipc.request_sync("reload", account=account, args={}, tier="read")
+    push_reload(account)
 
 
 def set_enabled(account: str, enabled: bool) -> None:
@@ -33,11 +39,6 @@ def webhook_clear(account: str) -> None:
     emit({"success": True, "account": account, "webhook_url": None})
 
 
-def _redact_header(h: str) -> str:
-    """Show the header name but hide its value (it may carry a bearer token)."""
-    return f"{h.split(':', 1)[0].strip()}: [REDACTED]" if ":" in h else h
-
-
 def webhook_show(account: str) -> None:
     cfg = accounts.listen_config(account)
     emit(
@@ -45,7 +46,7 @@ def webhook_show(account: str) -> None:
             "success": True,
             "account": account,
             "webhook_url": cfg["webhook_url"],
-            "webhook_headers": [_redact_header(h) for h in cfg["webhook_headers"]],
+            "webhook_headers": [redact_header(h) for h in cfg["webhook_headers"]],
         }
     )
 

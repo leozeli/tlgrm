@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Chats <small>会话</small></h1>
+{% if error %}
+<p class="flash err">{{ error }}</p>
+{% endif %}
+{% if chats %}
+<ul class="chats">
+  {% for chat in chats %}
+  <li>
+    <a href="/history?target={{ chat.id }}{% if account %}&amp;account={{ account }}{% endif %}">
+      <span class="name">{{ chat.name or chat.id }}</span>
+      <span class="meta">
+        <span class="type">{{ chat.type }}</span>
+        {% if chat.username %}<span>@{{ chat.username }}</span>{% endif %}
+        {% if chat.unread_count %}<span class="badge">{{ chat.unread_count }}</span>{% endif %}
+      </span>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% elif not error %}
+<p class="muted">No recent dialogs.</p>
+{% endif %}
+{% endblock %}

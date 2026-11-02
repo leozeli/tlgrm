@@ -32,6 +32,7 @@ src/tlgrm/
 ├── cli.py            # argparse entry point and command dispatch
 ├── core/             # async library: client, messages, chats, users, serialize, errors
 ├── mcp/              # MCP server (tlgrm-mcp): server.py, __main__.py
+├── ui/               # local web dashboard (`tlgrm ui`)
 ├── stt/             # pluggable speech-to-text backends (local + cloud)
 ├── webhooks.py       # real-time listener and webhook forwarding
 ├── config.py         # environment-based configuration and credentials

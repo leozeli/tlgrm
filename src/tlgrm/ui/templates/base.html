@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{{ title }} · tlgrm</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  {% if warning %}
+  <div class="banner" role="alert">{{ warning }}</div>
+  {% endif %}
+  <header class="top">
+    <div class="top-row">
+      <a class="mark" href="/{{ q }}">tlgrm</a>
+      <p class="tag">local desk <span>本地</span></p>
+      <form class="account" method="get" action="{{ request.url.path }}">
+        {% if accounts %}
+        <label>
+          <span>Account <small>账号</small></span>
+          <select name="account">
+            {% for name in accounts %}
+            <option value="{{ name }}" {% if name == account %}selected{% endif %}>{{ name }}{% if name == default_account %} · default{% endif %}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button type="submit">Use</button>
+        {% else %}
+        <span class="muted">No account yet</span>
+        {% endif %}
+      </form>
+    </div>
+    <nav>
+      <a href="/{{ q }}" {% if active == 'status' %}aria-current="page"{% endif %}>Status <small>状态</small></a>
+      <a href="/chats{{ q }}" {% if active == 'chats' %}aria-current="page"{% endif %}>Chats <small>会话</small></a>
+      <a href="/send{{ q }}" {% if active == 'send' %}aria-current="page"{% endif %}>Send <small>发送</small></a>
+      <a href="/listening{{ q }}" {% if active == 'listening' %}aria-current="page"{% endif %}>Listening <small>监听</small></a>
+      <a href="/settings{{ q }}" {% if active == 'settings' %}aria-current="page"{% endif %}>Settings <small>设置</small></a>
+    </nav>
+  </header>
+  <main>
+    {% if flash %}
+    <p class="flash {{ flash.kind }}" role="status">{{ flash.text }}</p>
+    {% endif %}
+    {% block body %}{% endblock %}
+  </main>
+  <footer>
+    <p>Localhost dashboard for the tlgrm user client. Unofficial — not affiliated with Telegram.</p>
+  </footer>
+</body>
+</html>

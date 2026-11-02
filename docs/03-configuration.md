@@ -10,6 +10,13 @@ tlgrm is configured entirely through **environment variables** (and an optional 
 | `TG_API_HASH` | Yes | — | Your Telegram `api_hash` from my.telegram.org. |
 | `TG_SESSION_PATH` | No | `~/.tlgrm/tg_session` | Base path for the Telethon session file (`.session` appended automatically). |
 | `TG_DOWNLOADS_DIR` | No | `~/.tlgrm/downloads` | Directory where incoming media is saved by the webhook listener. |
+| `TG_PROXY_HOST` | No | — | SOCKS/HTTP proxy host. Used together with `TG_PROXY_PORT`. |
+| `TG_PROXY_PORT` | No | — | SOCKS/HTTP proxy port. |
+| `TG_PROXY_TYPE` | No | `socks5` | `socks5`, `socks4`, or `http`. |
+| `TG_MTPROXY_HOST` | No | — | MTProxy host. Do not set this together with `TG_PROXY_*`. |
+| `TG_MTPROXY_PORT` | No | — | MTProxy port. |
+| `TG_MTPROXY_SECRET` | No | — | MTProxy secret. Never printed by the UI or error text. |
+| `TG_UI_ENV` | No | `~/.tlgrm/ui.env` | Env file written by `tlgrm ui` settings. Process environment wins. |
 
 If `TG_API_ID` or `TG_API_HASH` is missing, tlgrm prints setup instructions and exits with status `1`.
 
@@ -156,6 +163,17 @@ command, so changes take effect immediately.
 Together, `filter listen` and `filter write` give a full per-contact
 **listen × write** permission matrix — listen to someone but never reply, reply
 but never listen, both, or neither.
+
+## Proxies
+
+The Telegram client opens a direct connection unless you set **one** of these:
+
+- **SOCKS / HTTP:** `TG_PROXY_HOST` and `TG_PROXY_PORT` (optional `TG_PROXY_TYPE`, default `socks5`). Install a proxy library first: `pip install "python-socks[asyncio]"` (or `pysocks`).
+- **MTProxy:** `TG_MTPROXY_HOST`, `TG_MTPROXY_PORT`, and `TG_MTPROXY_SECRET`. Telethon's built-in MTProxy connection is used. No extra package.
+
+`tlgrm ui` can edit the same variables and stores them in `~/.tlgrm/ui.env` (mode `0600`). A value already exported in the environment wins over the file. The background server reads them when it opens a connection, so run `tlgrm server restart` after a change. `tlgrm server install` also snapshots whatever proxy variables are exported at install time into `~/.tlgrm/daemon.env`.
+
+Setting both SOCKS and MTProxy is an error. Incomplete values name the missing variable and do not echo secrets.
 
 ## Setting variables
 
